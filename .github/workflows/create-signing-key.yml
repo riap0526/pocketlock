@@ -4,6 +4,12 @@ name: Create signing key (run once)
 # encrypted file (signing/release.jks.enc). The passphrase itself is never printed or committed.
 on:
   workflow_dispatch:
+  # GitHub lists manual workflows only once they exist on the default branch. Running when this
+  # file is pushed makes it appear (and creates the key right away). It refuses to overwrite an
+  # existing key, so later runs are harmless.
+  push:
+    paths:
+      - .github/workflows/create-signing-key.yml
 
 permissions:
   contents: write
