@@ -133,10 +133,13 @@ class BatteryIndicatorView @JvmOverloads constructor(
     }
 
     private fun render() {
-        val color = if (charging) Prefs.batteryChargingColor(context) else Prefs.batteryColor(context)
+        // Outline and text always keep the normal color; only the fill turns to the charging
+        // color, so the percentage stays easy to read.
+        val color = Prefs.batteryColor(context)
         icon.level = level
         icon.charging = charging
         icon.color = color
+        icon.fillColor = if (charging) Prefs.batteryChargingColor(context) else color
         icon.invalidate()
         label.text = if (level >= 0) "$level%" else ""
         label.setTextColor(color)
@@ -158,9 +161,11 @@ class BatteryIndicatorView @JvmOverloads constructor(
         var level = -1
         var charging = false
         var color = 0xFFFFFFFF.toInt()
+        var fillColor = 0xFFFFFFFF.toInt()
 
         private val outline = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
         private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        private val nubPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         private val boltFill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL
             color = 0xFFFFFFFF.toInt()
@@ -184,13 +189,14 @@ class BatteryIndicatorView @JvmOverloads constructor(
             val stroke = 1.5f * u
             outline.strokeWidth = stroke
             outline.color = color
-            fill.color = color
+            fill.color = fillColor
+            nubPaint.color = color
 
             body.set(stroke / 2f, stroke / 2f, BODY_W * u - stroke / 2f, ICON_H * u - stroke / 2f)
             canvas.drawRoundRect(body, 2.5f * u, 2.5f * u, outline)
 
             nub.set(BODY_W * u + 0.5f * u, ICON_H * u * 0.3f, ICON_W * u, ICON_H * u * 0.7f)
-            canvas.drawRoundRect(nub, 1f * u, 1f * u, fill)
+            canvas.drawRoundRect(nub, 1f * u, 1f * u, nubPaint)
 
             if (level > 0) {
                 val gap = stroke + 1.2f * u

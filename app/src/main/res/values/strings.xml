@@ -71,8 +71,8 @@
     <string name="battery_size">Size</string>
     <string name="battery_x">Position X</string>
     <string name="battery_y">Position Y</string>
-    <string name="battery_color">Battery color</string>
-    <string name="battery_color_charging">Color while charging</string>
+    <string name="battery_color">Outline and text color</string>
+    <string name="battery_color_charging">Fill color while charging</string>
     <string name="appearance_bg_zoom">Zoom</string>
     <string name="appearance_bg_x">Position X</string>
     <string name="appearance_bg_y">Position Y</string>
