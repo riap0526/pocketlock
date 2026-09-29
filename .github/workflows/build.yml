@@ -15,12 +15,46 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # If the signing key exists (see create-signing-key.yml) and the KEYSTORE_PASSPHRASE secret is
+      # set, build a signed release APK. Otherwise fall back to an (unstable-key) debug APK.
+      - name: Prepare signing
+        id: sign
+        env:
+          PASS: ${{ secrets.KEYSTORE_PASSPHRASE }}
+        run: |
+          if [ -n "$PASS" ] && [ -f signing/release.jks.enc ]; then
+            mkdir -p keystore
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+              -in signing/release.jks.enc -out keystore/release.jks -pass env:PASS
+            printf 'storeFile=keystore/release.jks\nstorePassword=%s\nkeyAlias=pocketlock\nkeyPassword=%s\n' \
+              "$PASS" "$PASS" > keystore.properties
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build signed release APK
+        if: steps.sign.outputs.signed == 'true'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
+
       - name: Build debug APK
+        if: steps.sign.outputs.signed != 'true'
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload signed APK
+        if: steps.sign.outputs.signed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PocketLock-signed-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload debug APK
+        if: steps.sign.outputs.signed != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: PocketLock-debug-apk

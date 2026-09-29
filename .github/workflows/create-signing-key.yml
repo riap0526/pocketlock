@@ -1,0 +1,48 @@
+name: Create signing key (run once)
+
+# Generates the app signing key, encrypts it with the KEYSTORE_PASSPHRASE secret and commits only the
+# encrypted file (signing/release.jks.enc). The passphrase itself is never printed or committed.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Create and encrypt keystore
+        env:
+          PASS: ${{ secrets.KEYSTORE_PASSPHRASE }}
+        run: |
+          if [ -f signing/release.jks.enc ]; then
+            echo "signing/release.jks.enc already exists - refusing to overwrite the existing key."
+            exit 1
+          fi
+          if ! [[ "$PASS" =~ ^[A-Za-z0-9]{20,}$ ]]; then
+            echo "Secret KEYSTORE_PASSPHRASE is missing or invalid: use 20+ letters and digits only."
+            exit 1
+          fi
+          mkdir -p signing
+          keytool -genkeypair -keystore "$RUNNER_TEMP/release.jks" -storetype PKCS12 \
+            -alias pocketlock -keyalg RSA -keysize 2048 -validity 36500 \
+            -storepass:env PASS -keypass:env PASS -dname "CN=PocketLock"
+          openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt \
+            -in "$RUNNER_TEMP/release.jks" -out signing/release.jks.enc -pass env:PASS
+          rm -f "$RUNNER_TEMP/release.jks"
+
+      - name: Commit encrypted keystore
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add signing/release.jks.enc
+          git commit -m "Add encrypted release signing key"
+          git push
