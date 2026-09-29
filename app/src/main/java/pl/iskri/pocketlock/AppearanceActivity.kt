@@ -18,6 +18,7 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowInsets
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.SeekBar
@@ -62,6 +63,12 @@ class AppearanceActivity : Activity() {
                         (Prefs.backgroundScale(this@AppearanceActivity) * detector.scaleFactor)
                             .coerceIn(0.5f, 3f)
                     )
+                } else if (tab == TAB_BATTERY) {
+                    Prefs.setBatteryScale(
+                        this@AppearanceActivity,
+                        (Prefs.batteryScale(this@AppearanceActivity) * detector.scaleFactor)
+                            .coerceIn(0.5f, 3f)
+                    )
                 } else {
                     Prefs.setDotScale(
                         this@AppearanceActivity,
@@ -97,6 +104,14 @@ class AppearanceActivity : Activity() {
                         y = (y - distanceY / previewScale / range.second).coerceIn(-1f, 1f)
                     }
                     Prefs.setBackgroundOffset(this@AppearanceActivity, x, y)
+                } else if (tab == TAB_BATTERY) {
+                    val fx = -distanceX / previewScale / screenW
+                    val fy = -distanceY / previewScale / screenH
+                    Prefs.setBatteryCenter(
+                        this@AppearanceActivity,
+                        (Prefs.batteryCenterX(this@AppearanceActivity) + fx).coerceIn(0f, 1f),
+                        (Prefs.batteryCenterY(this@AppearanceActivity) + fy).coerceIn(0f, 1f)
+                    )
                 } else {
                     val fx = -distanceX / previewScale / screenW
                     val fy = -distanceY / previewScale / screenH
@@ -153,7 +168,38 @@ class AppearanceActivity : Activity() {
         findViewById<Button>(R.id.btnTabBackground).setOnClickListener { setTab(TAB_BACKGROUND) }
         findViewById<Button>(R.id.btnTabDots).setOnClickListener { setTab(TAB_DOTS) }
         findViewById<Button>(R.id.btnTabColors).setOnClickListener { setTab(TAB_COLORS) }
+        findViewById<Button>(R.id.btnTabBattery).setOnClickListener { setTab(TAB_BATTERY) }
         setTab(TAB_BACKGROUND)
+
+        findViewById<CheckBox>(R.id.cbBatteryEnabled).apply {
+            isChecked = Prefs.isBatteryEnabled(this@AppearanceActivity)
+            setOnCheckedChangeListener { _, checked ->
+                Prefs.setBatteryEnabled(this@AppearanceActivity, checked)
+                refreshPreview()
+            }
+        }
+        findViewById<CheckBox>(R.id.cbBatteryPercent).apply {
+            isChecked = Prefs.isBatteryPercentEnabled(this@AppearanceActivity)
+            setOnCheckedChangeListener { _, checked ->
+                Prefs.setBatteryPercentEnabled(this@AppearanceActivity, checked)
+                refreshPreview()
+            }
+        }
+        val presetIds = intArrayOf(
+            R.id.btnBatTopLeft, R.id.btnBatTopCenter, R.id.btnBatTopRight,
+            R.id.btnBatBottomLeft, R.id.btnBatBottomCenter, R.id.btnBatBottomRight
+        )
+        for (id in presetIds) {
+            findViewById<Button>(id).setOnClickListener { button ->
+                val (x, y) = (button.tag as String).split(",").map { it.toFloat() }
+                Prefs.setBatteryCenter(this, x, y)
+                refreshPreview()
+            }
+        }
+        findViewById<Button>(R.id.btnResetBattery).setOnClickListener {
+            Prefs.resetBatteryAppearance(this)
+            recreate()
+        }
 
         findViewById<Button>(R.id.btnChooseImage).setOnClickListener { pickImage() }
         findViewById<Button>(R.id.btnRemoveImage).setOnClickListener { removeImage() }
@@ -208,9 +254,14 @@ class AppearanceActivity : Activity() {
             if (newTab == TAB_DOTS) 1f else 0.5f
         findViewById<Button>(R.id.btnTabColors).alpha =
             if (newTab == TAB_COLORS) 1f else 0.5f
+        findViewById<View>(R.id.tab_battery).visibility =
+            if (newTab == TAB_BATTERY) View.VISIBLE else View.GONE
+        findViewById<Button>(R.id.btnTabBattery).alpha =
+            if (newTab == TAB_BATTERY) 1f else 0.5f
         findViewById<TextView>(R.id.tvHint).text = when (newTab) {
             TAB_BACKGROUND -> getString(R.string.appearance_hint_background)
             TAB_DOTS -> getString(R.string.appearance_hint_dots)
+            TAB_BATTERY -> getString(R.string.appearance_hint_battery)
             else -> getString(R.string.appearance_hint_colors)
         }
     }
@@ -290,6 +341,23 @@ class AppearanceActivity : Activity() {
             Prefs.setDotCenter(this, Prefs.dotCenterX(this), value)
             refreshPreview()
         }
+
+        val battery = findViewById<LinearLayout>(R.id.battery_sliders)
+        addSlider(battery, getString(R.string.battery_size), 0.5f, 3f,
+            { Prefs.batteryScale(this) }) { value ->
+            Prefs.setBatteryScale(this, value)
+            refreshPreview()
+        }
+        addSlider(battery, getString(R.string.battery_x), 0f, 1f,
+            { Prefs.batteryCenterX(this) }) { value ->
+            Prefs.setBatteryCenter(this, value, Prefs.batteryCenterY(this))
+            refreshPreview()
+        }
+        addSlider(battery, getString(R.string.battery_y), 0f, 1f,
+            { Prefs.batteryCenterY(this) }) { value ->
+            Prefs.setBatteryCenter(this, Prefs.batteryCenterX(this), value)
+            refreshPreview()
+        }
     }
 
     private fun buildColorEditors() {
@@ -299,6 +367,17 @@ class AppearanceActivity : Activity() {
         }
         buildColorEditor(findViewById(R.id.inactive_color_sliders), Prefs.dotInactiveColor(this)) {
             Prefs.setDotInactiveColor(this, it)
+            refreshPreview()
+        }
+        buildColorEditor(findViewById(R.id.battery_color_sliders), Prefs.batteryColor(this)) {
+            Prefs.setBatteryColor(this, it)
+            refreshPreview()
+        }
+        buildColorEditor(
+            findViewById(R.id.battery_charging_color_sliders),
+            Prefs.batteryChargingColor(this)
+        ) {
+            Prefs.setBatteryChargingColor(this, it)
             refreshPreview()
         }
     }
@@ -564,6 +643,7 @@ class AppearanceActivity : Activity() {
         const val TAB_BACKGROUND = 0
         const val TAB_DOTS = 1
         const val TAB_COLORS = 2
+        const val TAB_BATTERY = 3
         const val SLIDER_STEPS = 1000f
         const val MAX_DIMENSION = 4096
 

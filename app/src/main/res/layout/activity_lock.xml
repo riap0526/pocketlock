@@ -47,4 +47,11 @@
             android:contentDescription="@null"
             android:src="@drawable/dot" />
     </LinearLayout>
+
+    <pl.iskri.pocketlock.BatteryIndicatorView
+        android:id="@+id/battery_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:visibility="gone" />
 </pl.iskri.pocketlock.LockOverlayView>

@@ -46,6 +46,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/appearance_tab_colors" />
+
+        <Button
+            android:id="@+id/btnTabBattery"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/appearance_tab_battery" />
     </LinearLayout>
 
     <ScrollView
@@ -164,6 +171,141 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:text="@string/appearance_reset" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tab_battery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <CheckBox
+                    android:id="@+id/cbBatteryEnabled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_show"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
+
+                <CheckBox
+                    android:id="@+id/cbBatteryPercent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery_show_percent"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/battery_position"
+                    android:textColor="#CCCCCC"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnBatTopLeft"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:tag="0,0"
+                        android:text="@string/battery_pos_top_left" />
+
+                    <Button
+                        android:id="@+id/btnBatTopCenter"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:tag="0.5,0"
+                        android:text="@string/battery_pos_top_center" />
+
+                    <Button
+                        android:id="@+id/btnBatTopRight"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:tag="1,0"
+                        android:text="@string/battery_pos_top_right" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnBatBottomLeft"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:tag="0,1"
+                        android:text="@string/battery_pos_bottom_left" />
+
+                    <Button
+                        android:id="@+id/btnBatBottomCenter"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:tag="0.5,1"
+                        android:text="@string/battery_pos_bottom_center" />
+
+                    <Button
+                        android:id="@+id/btnBatBottomRight"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:tag="1,1"
+                        android:text="@string/battery_pos_bottom_right" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/battery_sliders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/battery_color"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/battery_color_sliders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/battery_color_charging"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/battery_charging_color_sliders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <Button
+                    android:id="@+id/btnResetBattery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/appearance_reset_section" />
             </LinearLayout>
         </FrameLayout>
     </ScrollView>

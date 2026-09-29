@@ -22,6 +22,8 @@ work on any Android 8.0+ device.
 - **Click sound & vibration** (can be turned off).
 - **Custom appearance** — your own background photo (stored losslessly as WebP/PNG, up to 4096 px),
   pan/zoom, plus dot size, position and colors from a palette.
+- **Battery indicator (optional)** — battery icon with fill level, lightning bolt while charging and
+  optional percentage; position, size and colors are configurable (Appearance → Battery).
 - **Aspect-ratio independent** — positions are stored as fractions of the screen, so the same
   settings adapt to any resolution (16:9, 4:3, ...).
 - **No ads, no analytics, no internet permission.**

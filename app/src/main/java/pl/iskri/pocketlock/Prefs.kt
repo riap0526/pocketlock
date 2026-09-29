@@ -38,6 +38,13 @@ object Prefs {
     private const val KEY_DOT_CENTER_Y = "dot_center_y"
     private const val KEY_DOT_ACTIVE_COLOR = "dot_active_color"
     private const val KEY_DOT_INACTIVE_COLOR = "dot_inactive_color"
+    private const val KEY_BATTERY_ENABLED = "battery_enabled"
+    private const val KEY_BATTERY_PERCENT = "battery_percent"
+    private const val KEY_BATTERY_SCALE = "battery_scale"
+    private const val KEY_BATTERY_X = "battery_x"
+    private const val KEY_BATTERY_Y = "battery_y"
+    private const val KEY_BATTERY_COLOR = "battery_color"
+    private const val KEY_BATTERY_CHARGING_COLOR = "battery_charging_color"
 
     private fun sp(context: Context) =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -194,7 +201,61 @@ object Prefs {
         sp(context).edit().putInt(KEY_DOT_INACTIVE_COLOR, color).apply()
     }
 
+    fun isBatteryEnabled(context: Context): Boolean =
+        sp(context).getBoolean(KEY_BATTERY_ENABLED, false)
+
+    fun setBatteryEnabled(context: Context, enabled: Boolean) {
+        sp(context).edit().putBoolean(KEY_BATTERY_ENABLED, enabled).apply()
+    }
+
+    fun isBatteryPercentEnabled(context: Context): Boolean =
+        sp(context).getBoolean(KEY_BATTERY_PERCENT, true)
+
+    fun setBatteryPercentEnabled(context: Context, enabled: Boolean) {
+        sp(context).edit().putBoolean(KEY_BATTERY_PERCENT, enabled).apply()
+    }
+
+    fun batteryScale(context: Context): Float = sp(context).getFloat(KEY_BATTERY_SCALE, 1.2f)
+
+    fun setBatteryScale(context: Context, value: Float) {
+        sp(context).edit().putFloat(KEY_BATTERY_SCALE, value).apply()
+    }
+
+    fun batteryCenterX(context: Context): Float = sp(context).getFloat(KEY_BATTERY_X, 1f)
+
+    fun batteryCenterY(context: Context): Float = sp(context).getFloat(KEY_BATTERY_Y, 0f)
+
+    fun setBatteryCenter(context: Context, x: Float, y: Float) {
+        sp(context).edit().putFloat(KEY_BATTERY_X, x).putFloat(KEY_BATTERY_Y, y).apply()
+    }
+
+    fun batteryColor(context: Context): Int =
+        sp(context).getInt(KEY_BATTERY_COLOR, 0xFFFFFFFF.toInt())
+
+    fun setBatteryColor(context: Context, color: Int) {
+        sp(context).edit().putInt(KEY_BATTERY_COLOR, color).apply()
+    }
+
+    fun batteryChargingColor(context: Context): Int =
+        sp(context).getInt(KEY_BATTERY_CHARGING_COLOR, 0xFF4CAF50.toInt())
+
+    fun setBatteryChargingColor(context: Context, color: Int) {
+        sp(context).edit().putInt(KEY_BATTERY_CHARGING_COLOR, color).apply()
+    }
+
+    /** Resets size, position and colors of the battery indicator (not the on/off switches). */
+    fun resetBatteryAppearance(context: Context) {
+        sp(context).edit()
+            .remove(KEY_BATTERY_SCALE)
+            .remove(KEY_BATTERY_X)
+            .remove(KEY_BATTERY_Y)
+            .remove(KEY_BATTERY_COLOR)
+            .remove(KEY_BATTERY_CHARGING_COLOR)
+            .apply()
+    }
+
     fun resetAppearance(context: Context) {
+        resetBatteryAppearance(context)
         sp(context).edit()
             .remove(KEY_BG_SCALE)
             .remove(KEY_BG_OFFSET_X)

@@ -54,6 +54,12 @@ object LockAppearance {
         if (dots != null) {
             applyDots(dots, context, root.width, root.height)
         }
+        root.findViewById<BatteryIndicatorView>(R.id.battery_indicator)?.let { battery ->
+            battery.applyStyle()
+            if (root.width > 0 && root.height > 0) {
+                battery.positionIn(root.width, root.height)
+            }
+        }
     }
 
     private fun applyBackground(
