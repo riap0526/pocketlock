@@ -28,6 +28,7 @@ class LockOverlayView @JvmOverloads constructor(
     private var dots: List<ImageView> = emptyList()
     private var presses = 0
     private var triggerLatched = false
+    private var hatKeyCode = 0
     private var unlocked = false
     private var exitStarted = false
     private var exitFinished = false
@@ -141,6 +142,8 @@ class LockOverlayView @JvmOverloads constructor(
         if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
             if (!isScreenOn()) return
             Prefs.setLastKey(context, "keyCode=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)})")
+            Prefs.captureButton(context, event.keyCode)
+            if (!Prefs.isButtonAllowed(context, event.keyCode)) return
             registerPress()
         }
     }
@@ -148,6 +151,7 @@ class LockOverlayView @JvmOverloads constructor(
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         if (!interactive) return super.onGenericMotionEvent(event)
         if (!isScreenOn()) return true
+        handleHat(event)
         val value = maxOf(
             abs(event.getAxisValue(MotionEvent.AXIS_LTRIGGER)),
             abs(event.getAxisValue(MotionEvent.AXIS_RTRIGGER)),
@@ -158,7 +162,9 @@ class LockOverlayView @JvmOverloads constructor(
             if (!triggerLatched) {
                 triggerLatched = true
                 Prefs.setLastKey(context, "trigger (axis=${"%.2f".format(value)})")
-                registerPress()
+                if (Prefs.isTriggersEnabled(context) || !Prefs.hasUnlockMethod(context)) {
+                    registerPress()
+                }
             }
         } else if (value < 0.3f) {
             triggerLatched = false
@@ -166,10 +172,32 @@ class LockOverlayView @JvmOverloads constructor(
         return true
     }
 
+    /**
+     * The D-pad on some handhelds (e.g. Retroid Pocket) is reported only as the analog HAT
+     * axes, with no DPAD key events. Treat a change of direction as a press and capture it so
+     * it shows up in the buttons list.
+     */
+    private fun handleHat(event: MotionEvent) {
+        val keyCode = ButtonMap.hatKey(
+            event.getAxisValue(MotionEvent.AXIS_HAT_X),
+            event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+        )
+        if (keyCode == null) {
+            hatKeyCode = 0
+            return
+        }
+        if (keyCode == hatKeyCode) return
+        hatKeyCode = keyCode
+        Prefs.setLastKey(context, KeyEvent.keyCodeToString(keyCode))
+        Prefs.captureButton(context, keyCode)
+        if (Prefs.isButtonAllowed(context, keyCode)) registerPress()
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!interactive) return false
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             if (!isScreenOn()) return true
+            if (!Prefs.isTouchEnabled(context) && Prefs.hasUnlockMethod(context)) return true
             Prefs.setLastKey(context, "screen touch")
             registerPress()
         }

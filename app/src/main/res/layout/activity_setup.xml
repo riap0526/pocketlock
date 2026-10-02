@@ -288,6 +288,39 @@
                     android:textSize="16sp" />
 
                 <CheckBox
+                    android:id="@+id/cbTouch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/checkbox_touch"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/touch_hint"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp" />
+
+                <CheckBox
+                    android:id="@+id/cbTriggers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/checkbox_triggers"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/triggers_hint"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp" />
+
+                <CheckBox
                     android:id="@+id/cbRememberPresses"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -381,6 +414,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/btn_appearance" />
+
+                <Button
+                    android:id="@+id/btnButtons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/btn_buttons" />
             </LinearLayout>
         </FrameLayout>
     </ScrollView>
