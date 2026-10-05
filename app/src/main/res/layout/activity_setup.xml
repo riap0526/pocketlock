@@ -421,6 +421,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/btn_buttons" />
+
+                <Button
+                    android:id="@+id/btnNoPause"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/btn_no_pause" />
             </LinearLayout>
         </FrameLayout>
     </ScrollView>

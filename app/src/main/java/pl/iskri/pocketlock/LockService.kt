@@ -58,8 +58,9 @@ class LockService : Service() {
             }
             val foregroundPackage = lockedPackage ?: foregroundPackageBehindLock()
             val playbackPackages = activePlaybackPackages()
-            val retroArchPlaying = foregroundPackage == RETROARCH_PACKAGE
-                || playbackPackages?.contains(RETROARCH_PACKAGE) == true
+            val noPause = Prefs.noPausePackages(this@LockService)
+            val noPausePlaying = (foregroundPackage != null && foregroundPackage in noPause)
+                || playbackPackages?.any { it in noPause } == true
             val canIdentifyPlayingApp = foregroundPackage != null || playbackPackages != null
             Log.i(
                 TAG,
@@ -67,7 +68,7 @@ class LockService : Service() {
                     "behind=${foregroundPackage ?: "unknown"} " +
                     "players=${playbackPackages ?: "unknown"}"
             )
-            if (active && canIdentifyPlayingApp && !retroArchPlaying
+            if (active && canIdentifyPlayingApp && !noPausePlaying
                 && (foregroundPackage != null || playbackPackages?.isNotEmpty() == true)
             ) {
                 audioActiveCount++
@@ -88,6 +89,9 @@ class LockService : Service() {
         isRunning = true
         createChannel()
         goForeground()
+        // Decode the lock background now, off the main thread, so the first screen-off does not
+        // have to (a slow first decode could leave the lock screen not ready on a quick wake).
+        Thread { LockAppearance.loadBackground(applicationContext) }.start()
         // Safety net: if a previous instance was killed while the media stream was muted, restore
         // it now (the lock will re-mute immediately if it is still armed).
         unmuteMedia()
@@ -503,7 +507,6 @@ class LockService : Service() {
         private const val AUDIO_CHECK_START_DELAY_MS = 400L
         private const val AUDIO_CHECK_INTERVAL_MS = 400L
         private const val AUDIO_CHECKS_TO_STOP = 2
-        private const val RETROARCH_PACKAGE = "com.retroarch.aarch64"
         private const val USAGE_LOOKBACK_MS = 15 * 60 * 1000L
 
         @Volatile

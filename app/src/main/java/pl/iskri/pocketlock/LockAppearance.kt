@@ -4,8 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.graphics.Point
+import android.hardware.display.DisplayManager
 import android.graphics.drawable.BitmapDrawable
 import android.util.TypedValue
+import android.view.Display
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -18,6 +21,7 @@ object LockAppearance {
     const val BACKGROUND_FILE = "lock_bg.img"
     private const val LEGACY_BACKGROUND_FILE = "lock_bg.jpg"
 
+    @Volatile
     private var cachedBitmap: Bitmap? = null
 
     fun backgroundFile(context: Context): File = File(context.filesDir, BACKGROUND_FILE)
@@ -143,6 +147,8 @@ object LockAppearance {
         }
     }
 
+    /** Synchronized: the service pre-decodes on a background thread while the UI may ask too. */
+    @Synchronized
     fun loadBackground(context: Context): Bitmap? {
         cachedBitmap?.let { if (!it.isRecycled) return it }
         val file = if (Prefs.isBackgroundEnabled(context)) existingBackgroundFile(context) else null
@@ -156,9 +162,16 @@ object LockAppearance {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
             if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+            // Halve while the result still covers the screen in both directions: the lock screen
+            // never needs more pixels than that, and a full 4096 px photo would keep ~64 MB in
+            // memory for as long as the service runs.
+            val (screenW, screenH) = screenSize(context)
             var sample = 1
             while (bounds.outWidth / sample > MAX_DIMENSION ||
-                bounds.outHeight / sample > MAX_DIMENSION) {
+                bounds.outHeight / sample > MAX_DIMENSION ||
+                (bounds.outWidth / (sample * 2) >= screenW &&
+                    bounds.outHeight / (sample * 2) >= screenH)
+            ) {
                 sample *= 2
             }
             val options = BitmapFactory.Options().apply {
@@ -169,6 +182,21 @@ object LockAppearance {
         } catch (_: Throwable) {
             null
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun screenSize(context: Context): Pair<Int, Int> {
+        val size = Point()
+        try {
+            val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+            dm.getDisplay(Display.DEFAULT_DISPLAY)?.getRealSize(size)
+        } catch (_: Throwable) {
+        }
+        if (size.x <= 0 || size.y <= 0) {
+            val metrics = context.resources.displayMetrics
+            size.set(metrics.widthPixels, metrics.heightPixels)
+        }
+        return size.x to size.y
     }
 
     private fun dp(context: Context, value: Float): Int =

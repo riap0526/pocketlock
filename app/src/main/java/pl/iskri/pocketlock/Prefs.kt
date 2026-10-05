@@ -28,6 +28,8 @@ object Prefs {
     private const val KEY_REMEMBER_PRESSES = "remember_presses"
     private const val KEY_TOUCH_ENABLED = "touch_enabled"
     private const val KEY_TRIGGERS_ENABLED = "triggers_enabled"
+    private const val KEY_TRIGGERS_SEEN = "triggers_seen"
+    private const val KEY_NO_PAUSE_PACKAGES = "no_pause_packages"
     private const val KEY_BUTTONS_KNOWN = "buttons_known"
     private const val KEY_BUTTONS_REMOVED = "buttons_removed"
     private const val KEY_PRESS_COUNT = "press_count"
@@ -111,6 +113,36 @@ object Prefs {
         sp(context).edit().putBoolean(KEY_TRIGGERS_ENABLED, enabled).apply()
     }
 
+    /**
+     * Whether an analog trigger has ever been pressed on the lock screen. Devices whose L2/R2
+     * are digital buttons never report one, so "triggers enabled" alone must not count as a
+     * working unlock method (it would defeat the anti-lockout fallback).
+     */
+    fun triggersSeen(context: Context): Boolean =
+        sp(context).getBoolean(KEY_TRIGGERS_SEEN, false)
+
+    fun markTriggersSeen(context: Context) {
+        if (triggersSeen(context)) return
+        sp(context).edit().putBoolean(KEY_TRIGGERS_SEEN, true).apply()
+    }
+
+    /**
+     * Apps that are never stopped by PauseActivity while locked. Stopping and restarting them
+     * can crash their graphics driver (RetroArch with Vulkan), so they are only paused.
+     */
+    fun noPausePackages(context: Context): Set<String> =
+        sp(context).getStringSet(KEY_NO_PAUSE_PACKAGES, null)?.toSet() ?: DEFAULT_NO_PAUSE_PACKAGES
+
+    fun setNoPausePackages(context: Context, packages: Set<String>) {
+        sp(context).edit().putStringSet(KEY_NO_PAUSE_PACKAGES, HashSet(packages)).apply()
+    }
+
+    val DEFAULT_NO_PAUSE_PACKAGES = setOf(
+        "com.retroarch",
+        "com.retroarch.aarch64",
+        "com.retroarch.ra32"
+    )
+
     /** Every button/key code ever seen on the lock screen; used to populate the buttons list. */
     fun capturedButtons(context: Context): Set<Int> =
         sp(context).getStringSet(KEY_BUTTONS_KNOWN, emptySet())
@@ -173,7 +205,7 @@ object Prefs {
      */
     fun hasUnlockMethod(context: Context): Boolean =
         isTouchEnabled(context) ||
-            isTriggersEnabled(context) ||
+            (isTriggersEnabled(context) && triggersSeen(context)) ||
             (capturedButtons(context) - removedButtons(context)).isNotEmpty()
 
     fun isButtonAllowed(context: Context, keyCode: Int): Boolean {

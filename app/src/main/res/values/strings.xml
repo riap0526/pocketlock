@@ -49,6 +49,10 @@
 
     <string name="btn_appearance">Appearance…</string>
     <string name="btn_buttons">Buttons…</string>
+    <string name="btn_no_pause">Apps never stopped…</string>
+    <string name="no_pause_title">Apps never stopped</string>
+    <string name="no_pause_info">What is this?</string>
+    <string name="no_pause_hint">Checked apps are only paused behind the lock screen, never stopped — use this for apps that crash after being stopped (e.g. RetroArch with the Vulkan driver).</string>
     <string name="buttons_title">Buttons</string>
     <string name="buttons_hint">These are the buttons detected on the lock screen. Remove one to make it do nothing while unlocking. Use \"Add button\" to detect a new one by pressing it.</string>
     <string name="buttons_empty">No buttons detected yet. They show up here once pressed on the lock screen — or press \"Add button\" and then press the button on the console.</string>

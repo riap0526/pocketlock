@@ -22,6 +22,13 @@ android {
         targetSdk = 34
         versionCode = 79
         versionName = "1.3"
+
+        // GitHub Actions builds of this fork: derive an always-increasing versionCode from the
+        // upstream one and the run number, so every CI build installs over the previous one.
+        System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()?.let { run ->
+            versionCode = versionCode!! * 10000 + run
+            versionName = "$versionName-fork.$run"
+        }
     }
 
     signingConfigs {

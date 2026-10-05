@@ -22,6 +22,8 @@ work on any Android 8.0+ device.
 - **Click sound & vibration** (can be turned off).
 - **Custom appearance** — your own background photo (stored losslessly as WebP/PNG, up to 4096 px),
   pan/zoom, plus dot size, position and colors from a palette.
+- **Apps never stopped** — apps that crash after being stopped (RetroArch with Vulkan by default)
+  are only paused behind the lock screen; editable under Options → *Apps never stopped…*.
 - **Battery indicator (optional)** — battery icon with fill level, lightning bolt while charging and
   optional percentage; position, size and colors are configurable (Appearance → Battery).
 - **Aspect-ratio independent** — positions are stored as fractions of the screen, so the same

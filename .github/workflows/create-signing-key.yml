@@ -3,13 +3,9 @@ name: Create signing key (run once)
 # Generates the app signing key, encrypts it with the KEYSTORE_PASSPHRASE secret and commits only the
 # encrypted file (signing/release.jks.enc). The passphrase itself is never printed or committed.
 on:
+  # Manual only. The key already exists (signing/release.jks.enc); this workflow refuses to
+  # overwrite it and is kept only to document how the key was made.
   workflow_dispatch:
-  # GitHub lists manual workflows only once they exist on the default branch. Running when this
-  # file is pushed makes it appear (and creates the key right away). It refuses to overwrite an
-  # existing key, so later runs are harmless.
-  push:
-    paths:
-      - .github/workflows/create-signing-key.yml
 
 permissions:
   contents: write

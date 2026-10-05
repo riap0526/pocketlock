@@ -161,6 +161,7 @@ class LockOverlayView @JvmOverloads constructor(
         if (value > 0.6f) {
             if (!triggerLatched) {
                 triggerLatched = true
+                Prefs.markTriggersSeen(context)
                 Prefs.setLastKey(context, "trigger (axis=${"%.2f".format(value)})")
                 if (Prefs.isTriggersEnabled(context) || !Prefs.hasUnlockMethod(context)) {
                     registerPress()

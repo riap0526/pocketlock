@@ -115,6 +115,8 @@ class SetupActivity : Activity() {
             startActivity(Intent(this, ButtonsActivity::class.java))
         }
 
+        findViewById<Button>(R.id.btnNoPause).setOnClickListener { showNoPauseApps() }
+
         val cbSound = findViewById<CheckBox>(R.id.cbSound)
         cbSound.isChecked = Prefs.isSoundEnabled(this)
         cbSound.setOnCheckedChangeListener { _, checked -> Prefs.setSoundEnabled(this, checked) }
@@ -304,6 +306,35 @@ class SetupActivity : Activity() {
             startActivity(intent)
         } catch (_: Exception) {
         }
+    }
+
+    /** Checklist of launchable apps; checked ones are never stopped by PauseActivity. */
+    private fun showNoPauseApps() {
+        val launcher = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val apps = packageManager.queryIntentActivities(launcher, 0)
+            .map { it.activityInfo.packageName to it.loadLabel(packageManager).toString() }
+            .filter { it.first != packageName }
+            .distinctBy { it.first }
+            .sortedBy { it.second.lowercase() }
+        val selected = Prefs.noPausePackages(this).toMutableSet()
+        val labels = apps.map { "${it.second}\n${it.first}" }.toTypedArray()
+        val checked = apps.map { it.first in selected }.toBooleanArray()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.no_pause_title)
+            .setMultiChoiceItems(labels, checked) { _, index, isChecked ->
+                if (isChecked) selected.add(apps[index].first) else selected.remove(apps[index].first)
+            }
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                Prefs.setNoPausePackages(this, selected)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .setNeutralButton(R.string.no_pause_info) { _, _ ->
+                AlertDialog.Builder(this)
+                    .setMessage(R.string.no_pause_hint)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            }
+            .show()
     }
 
     private fun showInstructions() {
