@@ -111,6 +111,10 @@ class SetupActivity : Activity() {
             startActivity(Intent(this, AppearanceActivity::class.java))
         }
 
+        findViewById<Button>(R.id.btnButtons).setOnClickListener {
+            startActivity(Intent(this, ButtonsActivity::class.java))
+        }
+
         val cbSound = findViewById<CheckBox>(R.id.cbSound)
         cbSound.isChecked = Prefs.isSoundEnabled(this)
         cbSound.setOnCheckedChangeListener { _, checked -> Prefs.setSoundEnabled(this, checked) }
@@ -119,6 +123,18 @@ class SetupActivity : Activity() {
         cbVibration.isChecked = Prefs.isVibrationEnabled(this)
         cbVibration.setOnCheckedChangeListener { _, checked ->
             Prefs.setVibrationEnabled(this, checked)
+        }
+
+        val cbTouch = findViewById<CheckBox>(R.id.cbTouch)
+        cbTouch.isChecked = Prefs.isTouchEnabled(this)
+        cbTouch.setOnCheckedChangeListener { _, checked ->
+            Prefs.setTouchEnabled(this, checked)
+        }
+
+        val cbTriggers = findViewById<CheckBox>(R.id.cbTriggers)
+        cbTriggers.isChecked = Prefs.isTriggersEnabled(this)
+        cbTriggers.setOnCheckedChangeListener { _, checked ->
+            Prefs.setTriggersEnabled(this, checked)
         }
 
         val cbRememberPresses = findViewById<CheckBox>(R.id.cbRememberPresses)

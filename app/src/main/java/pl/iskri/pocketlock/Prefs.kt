@@ -26,6 +26,10 @@ object Prefs {
     private const val KEY_SCREEN_OFF_SECONDS = "screen_off_seconds"
     private const val DEFAULT_SCREEN_OFF_SECONDS = 10
     private const val KEY_REMEMBER_PRESSES = "remember_presses"
+    private const val KEY_TOUCH_ENABLED = "touch_enabled"
+    private const val KEY_TRIGGERS_ENABLED = "triggers_enabled"
+    private const val KEY_BUTTONS_KNOWN = "buttons_known"
+    private const val KEY_BUTTONS_REMOVED = "buttons_removed"
     private const val KEY_PRESS_COUNT = "press_count"
 
     private const val KEY_BG_ENABLED = "bg_enabled"
@@ -89,6 +93,92 @@ object Prefs {
 
     fun setRememberPresses(context: Context, enabled: Boolean) {
         sp(context).edit().putBoolean(KEY_REMEMBER_PRESSES, enabled).apply()
+    }
+
+    /** Whether tapping the screen counts as an unlock press. */
+    fun isTouchEnabled(context: Context): Boolean =
+        sp(context).getBoolean(KEY_TOUCH_ENABLED, true)
+
+    fun setTouchEnabled(context: Context, enabled: Boolean) {
+        sp(context).edit().putBoolean(KEY_TOUCH_ENABLED, enabled).apply()
+    }
+
+    /** Whether the analog L2/R2 triggers count as unlock presses. */
+    fun isTriggersEnabled(context: Context): Boolean =
+        sp(context).getBoolean(KEY_TRIGGERS_ENABLED, true)
+
+    fun setTriggersEnabled(context: Context, enabled: Boolean) {
+        sp(context).edit().putBoolean(KEY_TRIGGERS_ENABLED, enabled).apply()
+    }
+
+    /** Every button/key code ever seen on the lock screen; used to populate the buttons list. */
+    fun capturedButtons(context: Context): Set<Int> =
+        sp(context).getStringSet(KEY_BUTTONS_KNOWN, emptySet())
+            ?.mapNotNull { it.toIntOrNull() }
+            ?.toSet()
+            ?: emptySet()
+
+    fun captureButton(context: Context, keyCode: Int) {
+        val sp = sp(context)
+        val current = sp.getStringSet(KEY_BUTTONS_KNOWN, emptySet()) ?: emptySet()
+        val value = keyCode.toString()
+        if (value in current) return
+        val next = HashSet(current)
+        next.add(value)
+        sp.edit().putStringSet(KEY_BUTTONS_KNOWN, next).apply()
+    }
+
+    /**
+     * Buttons the user removed from the unlock list. A key code that is not here is allowed, so
+     * every button the app detects works by default and only explicit removals restrict it.
+     */
+    fun removedButtons(context: Context): Set<Int> =
+        sp(context).getStringSet(KEY_BUTTONS_REMOVED, emptySet())
+            ?.mapNotNull { it.toIntOrNull() }
+            ?.toSet()
+            ?: emptySet()
+
+    fun removeButton(context: Context, keyCode: Int) {
+        val sp = sp(context)
+        val next = HashSet(sp.getStringSet(KEY_BUTTONS_REMOVED, emptySet()) ?: emptySet())
+        if (!next.add(keyCode.toString())) return
+        sp.edit().putStringSet(KEY_BUTTONS_REMOVED, next).apply()
+    }
+
+    fun restoreButton(context: Context, keyCode: Int) {
+        val sp = sp(context)
+        val current = sp.getStringSet(KEY_BUTTONS_REMOVED, emptySet()) ?: emptySet()
+        val value = keyCode.toString()
+        if (value !in current) return
+        val next = HashSet(current)
+        next.remove(value)
+        sp.edit().putStringSet(KEY_BUTTONS_REMOVED, next).apply()
+    }
+
+    /** Removes every detected button from the unlock list. */
+    fun removeAllButtons(context: Context) {
+        val removed = capturedButtons(context).map { it.toString() }.toSet()
+        sp(context).edit().putStringSet(KEY_BUTTONS_REMOVED, removed).apply()
+    }
+
+    /** A detected button that is not removed; the unlock fallback uses the lowest one. */
+    fun fallbackButton(context: Context): Int? =
+        (capturedButtons(context) - removedButtons(context)).minOrNull()
+            ?: capturedButtons(context).minOrNull()
+
+    /**
+     * Whether at least one unlock method is currently enabled. Used as a safety net: if the
+     * user turned everything off (touch, triggers and every detected button), taps and one
+     * detected button keep working so the screen can never be locked for good.
+     */
+    fun hasUnlockMethod(context: Context): Boolean =
+        isTouchEnabled(context) ||
+            isTriggersEnabled(context) ||
+            (capturedButtons(context) - removedButtons(context)).isNotEmpty()
+
+    fun isButtonAllowed(context: Context, keyCode: Int): Boolean {
+        if (keyCode !in removedButtons(context)) return true
+        return !hasUnlockMethod(context) && keyCode == fallbackButton(context)
     }
 
     fun pressCount(context: Context): Int = sp(context).getInt(KEY_PRESS_COUNT, 0)

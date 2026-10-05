@@ -20,6 +20,8 @@
     <string name="switch_enabled">Lock enabled</string>
     <string name="checkbox_sound">Click sound</string>
     <string name="checkbox_vibration">Vibration</string>
+    <string name="checkbox_touch">Count screen taps as unlock presses</string>
+    <string name="touch_hint">When off, only buttons and triggers unlock the screen — tapping the screen does nothing.</string>
     <string name="checkbox_remember_presses">Remember dots after screen off</string>
     <string name="remember_presses_hint">Keeps the already-pressed dots when the screen turns off, so you continue instead of starting over. Off by default.</string>
     <string name="checkbox_notification">Show notification</string>
@@ -46,6 +48,20 @@
     <string name="animation_duration_seconds">%1$s s</string>
 
     <string name="btn_appearance">Appearance…</string>
+    <string name="btn_buttons">Buttons…</string>
+    <string name="buttons_title">Buttons</string>
+    <string name="buttons_hint">These are the buttons detected on the lock screen. Remove one to make it do nothing while unlocking. Use \"Add button\" to detect a new one by pressing it.</string>
+    <string name="buttons_empty">No buttons detected yet. They show up here once pressed on the lock screen — or press \"Add button\" and then press the button on the console.</string>
+    <string name="buttons_capture_prompt">Listening… press a button on the console.</string>
+    <string name="btn_add_button">Add button</string>
+    <string name="btn_assign_cancel">Cancel</string>
+    <string name="btn_remove">Remove</string>
+    <string name="btn_remove_all">Remove all</string>
+    <string name="remove_all_confirm_title">Remove all buttons?</string>
+    <string name="remove_all_confirm_message">This removes every detected button from the unlock list. You can add them again with \"Add button\".</string>
+    <string name="button_added">Added: %1$s</string>
+    <string name="checkbox_triggers">Count analog triggers (L2/R2) as presses</string>
+    <string name="triggers_hint">On some games/controllers L2 and R2 are reported as analog triggers instead of buttons.</string>
     <string name="appearance_title">Appearance</string>
     <string name="appearance_choose_image">Choose image</string>
     <string name="appearance_black_background">Black background</string>
