@@ -20,8 +20,8 @@ android {
         applicationId = "pl.iskri.pocketlock"
         minSdk = 27
         targetSdk = 34
-        versionCode = 79
-        versionName = "1.3"
+        versionCode = 80
+        versionName = "1.4"
 
         // GitHub Actions builds of this fork: derive an always-increasing versionCode from the
         // upstream one and the run number, so every CI build installs over the previous one.
