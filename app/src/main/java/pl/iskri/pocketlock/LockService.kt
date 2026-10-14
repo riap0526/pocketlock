@@ -22,6 +22,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
@@ -361,11 +362,57 @@ class LockService : Service() {
         handler.removeCallbacks(audioCheckRunnable)
         PauseActivity.finishIfRunning()
         ScreenTimeout.cancel()
-        // While locked, this overlay window holds the focus and is therefore the system bar
-        // control target. Its own "hide system bars" request would immediately re-hide the
-        // bars that LockActivity restores when finishing, so the app below would be laid out
-        // without them and jump when they reappear after the unlock animation. Release the
-        // focus (the finishing activity/app takes over) and stop hiding the bars.
+        // Input guard: the overlay keeps the focus for a moment after the unlock and swallows
+        // every key, so a quick extra press (or the release of the unlocking one) does not reach
+        // the app below - e.g. a launcher opening a game on the same A press.
+        val showBars = Prefs.barsVisible(this) ?: false
+        val guardMs = Prefs.unlockGuardMs(this).toLong()
+        var animationDone = false
+        var guardDone = guardMs <= 0
+        fun finishUnlock() {
+            // The screen may have gone off meanwhile and a new lock replaced this overlay.
+            if (animationDone && guardDone && overlayView === view) {
+                // The audio focus is abandoned in detachOverlay(), i.e. after the slide: it
+                // keeps media paused during the short (invisible) handoff to the app.
+                detachOverlay(unmuteMedia = true)
+            }
+        }
+        if (guardDone) {
+            releaseOverlayFocus(view)
+        } else if (showBars) {
+            // While it keeps the focus the overlay controls the system bars: request them now,
+            // so the app below is laid out with its bars right away and does not jump later.
+            view.showSystemBars()
+        }
+        LockActivity.finishIfRunning(showSystemBars = showBars)
+        view.playExitAnimation {
+            animationDone = true
+            finishUnlock()
+        }
+        if (!guardDone) {
+            val start = SystemClock.uptimeMillis()
+            handler.postDelayed(object : Runnable {
+                override fun run() {
+                    val waited = SystemClock.uptimeMillis() - start
+                    if (view.isInputHeld() && waited < UNLOCK_GUARD_MAX_MS) {
+                        handler.postDelayed(this, 50L)
+                        return
+                    }
+                    guardDone = true
+                    if (overlayView === view) releaseOverlayFocus(view)
+                    finishUnlock()
+                }
+            }, guardMs)
+        }
+    }
+
+    /**
+     * While locked, this overlay window holds the focus and is therefore the system bar control
+     * target. Its own "hide system bars" request would re-hide the bars that LockActivity
+     * restores when finishing, so the app below would be laid out without them and jump when
+     * they reappear. Release the focus (the app takes over) and stop hiding the bars.
+     */
+    private fun releaseOverlayFocus(view: LockOverlayView) {
         try {
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val params = view.layoutParams as WindowManager.LayoutParams
@@ -374,12 +421,6 @@ class LockService : Service() {
         } catch (_: Throwable) {
         }
         view.showSystemBars()
-        // The audio focus is abandoned in detachOverlay(), i.e. after the slide: it keeps
-        // media paused during the short (invisible) handoff to the app.
-        LockActivity.finishIfRunning(
-            showSystemBars = Prefs.barsVisible(this) ?: false
-        )
-        view.playExitAnimation { detachOverlay(unmuteMedia = true) }
     }
 
     /**
@@ -493,6 +534,8 @@ class LockService : Service() {
         private const val AUDIO_CHECK_INTERVAL_MS = 400L
         private const val AUDIO_CHECKS_TO_STOP = 2
         private const val USAGE_LOOKBACK_MS = 15 * 60 * 1000L
+        // Upper bound for the post-unlock input guard when a key seems stuck down.
+        private const val UNLOCK_GUARD_MAX_MS = 3000L
 
         @Volatile
         var isRunning = false

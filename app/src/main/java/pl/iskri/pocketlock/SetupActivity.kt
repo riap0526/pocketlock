@@ -46,6 +46,9 @@ class SetupActivity : Activity() {
         Prefs.ANIMATION_FADE_SLIDE
     )
 
+    // Values of the "Ignore buttons after unlock" spinner, in milliseconds; 0 means off.
+    private val unlockGuardValues = intArrayOf(0, 250, 500, 1000)
+
     // Values of the "Animation duration" spinner, in milliseconds.
     private val animationDurationValues = intArrayOf(150, 250, 350, 500, 750)
 
@@ -247,6 +250,33 @@ class SetupActivity : Activity() {
                 id: Long
             ) {
                 Prefs.setAnimationDuration(this@SetupActivity, animationDurationValues[position])
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+
+        val guardSpinner = findViewById<Spinner>(R.id.spUnlockGuard)
+        val guardLabels = unlockGuardValues.map { ms ->
+            if (ms <= 0) getString(R.string.unlock_guard_off)
+            else getString(R.string.animation_duration_ms, ms)
+        }
+        guardSpinner.adapter =
+            ArrayAdapter(this, R.layout.spinner_item, guardLabels).apply {
+                setDropDownViewResource(R.layout.spinner_dropdown_item)
+            }
+        val guardIndex = unlockGuardValues.indexOf(Prefs.unlockGuardMs(this))
+        guardSpinner.setSelection(
+            if (guardIndex >= 0) guardIndex else unlockGuardValues.indexOf(500)
+        )
+        guardSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                Prefs.setUnlockGuardMs(this@SetupActivity, unlockGuardValues[position])
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {

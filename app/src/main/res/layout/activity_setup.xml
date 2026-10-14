@@ -399,6 +399,32 @@
                     android:popupBackground="@drawable/bg_spinner_popup"
                     android:spinnerMode="dropdown" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/unlock_guard_label"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
+
+                <Spinner
+                    android:id="@+id/spUnlockGuard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:minWidth="200dp"
+                    android:background="@drawable/bg_spinner"
+                    android:popupBackground="@drawable/bg_spinner_popup"
+                    android:spinnerMode="dropdown" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/unlock_guard_hint"
+                    android:textColor="#888888"
+                    android:textSize="13sp" />
+
                 <CheckBox
                     android:id="@+id/cbNotification"
                     android:layout_width="match_parent"

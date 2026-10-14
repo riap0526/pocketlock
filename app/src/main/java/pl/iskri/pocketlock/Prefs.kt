@@ -29,6 +29,7 @@ object Prefs {
     private const val KEY_TOUCH_ENABLED = "touch_enabled"
     private const val KEY_TRIGGERS_ENABLED = "triggers_enabled"
     private const val KEY_TRIGGERS_SEEN = "triggers_seen"
+    private const val KEY_UNLOCK_GUARD_MS = "unlock_guard_ms"
     private const val KEY_NO_PAUSE_PACKAGES = "no_pause_packages"
     private const val KEY_BUTTONS_KNOWN = "buttons_known"
     private const val KEY_BUTTONS_REMOVED = "buttons_removed"
@@ -111,6 +112,13 @@ object Prefs {
 
     fun setTriggersEnabled(context: Context, enabled: Boolean) {
         sp(context).edit().putBoolean(KEY_TRIGGERS_ENABLED, enabled).apply()
+    }
+
+    /** How long input is swallowed after the unlock (0 = off), see LockService.performUnlock. */
+    fun unlockGuardMs(context: Context): Int = sp(context).getInt(KEY_UNLOCK_GUARD_MS, 500)
+
+    fun setUnlockGuardMs(context: Context, value: Int) {
+        sp(context).edit().putInt(KEY_UNLOCK_GUARD_MS, value).apply()
     }
 
     /**

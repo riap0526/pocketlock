@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4-fork — changes since 1.3-fork
+
+### New
+
+- **Ignore buttons after unlock** (Options → Ignore buttons after unlock: Off / 250 / 500 /
+  1000 ms, default 500 ms). After the third press the lock screen keeps swallowing buttons for
+  this long and until every button is released, so a quick extra press no longer reaches the
+  app below (e.g. ES-DE launching a game on the same A press that unlocked).
+
+### From upstream 1.4
+
+- Apps stopped while locked (see *Apps never stopped*) stay paused until the unlock instead of
+  resuming on the first press, and are handed back without the system's sideways slide
+  animation.
+- Not included: upstream's top bar (clock + battery). This fork keeps its own battery
+  indicator; the system-bar timing change that the top bar needed is left out as well.
+
 ## 1.3-fork — changes since 1.2.2
 
 Builds from this fork are versioned `1.3-fork.<build>` (e.g. `1.3-fork.6`). Signed fork builds

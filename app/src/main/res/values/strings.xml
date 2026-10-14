@@ -44,6 +44,9 @@
     <string name="animation_zoom_in">Zoom in</string>
     <string name="animation_fade_slide">Fade + slide</string>
     <string name="animation_duration_label">Animation duration</string>
+    <string name="unlock_guard_label">Ignore buttons after unlock</string>
+    <string name="unlock_guard_hint">Buttons pressed right after unlocking are ignored for this long (and until released), so an extra press does not reach the app — e.g. a launcher starting a game.</string>
+    <string name="unlock_guard_off">Off</string>
     <string name="animation_duration_ms">%1$d ms</string>
     <string name="animation_duration_seconds">%1$s s</string>
 

@@ -29,6 +29,7 @@ class LockOverlayView @JvmOverloads constructor(
     private var presses = 0
     private var triggerLatched = false
     private var hatKeyCode = 0
+    private val heldKeys = HashSet<Int>()
     private var unlocked = false
     private var exitStarted = false
     private var exitFinished = false
@@ -80,7 +81,9 @@ class LockOverlayView @JvmOverloads constructor(
 
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
-        if (interactive && hasWindowFocus) {
+        // Not after the unlock: the overlay may keep the focus for the post-unlock input guard,
+        // and re-hiding the bars then would undo the bars restored for the app below.
+        if (interactive && hasWindowFocus && !unlocked) {
             requestFocus()
             hideSystemBars()
         }
@@ -133,9 +136,20 @@ class LockOverlayView @JvmOverloads constructor(
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (!interactive) return super.dispatchKeyEvent(event)
+        when (event.action) {
+            KeyEvent.ACTION_DOWN -> heldKeys.add(event.keyCode)
+            KeyEvent.ACTION_UP -> heldKeys.remove(event.keyCode)
+        }
         handleKeyEvent(event)
         return true
     }
+
+    /**
+     * Whether a button, trigger or D-pad direction is still held. After the unlock the overlay
+     * keeps swallowing input until this is false, so the press that unlocked (or a quick extra
+     * one) never reaches the app below.
+     */
+    fun isInputHeld(): Boolean = heldKeys.isNotEmpty() || triggerLatched || hatKeyCode != 0
 
     fun handleKeyEvent(event: KeyEvent) {
         if (!interactive) return
