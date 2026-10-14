@@ -267,7 +267,7 @@ class SetupActivity : Activity() {
             }
         val guardIndex = unlockGuardValues.indexOf(Prefs.unlockGuardMs(this))
         guardSpinner.setSelection(
-            if (guardIndex >= 0) guardIndex else unlockGuardValues.indexOf(500)
+            if (guardIndex >= 0) guardIndex else unlockGuardValues.indexOf(250)
         )
         guardSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(

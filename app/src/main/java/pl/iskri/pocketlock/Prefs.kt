@@ -115,7 +115,7 @@ object Prefs {
     }
 
     /** How long input is swallowed after the unlock (0 = off), see LockService.performUnlock. */
-    fun unlockGuardMs(context: Context): Int = sp(context).getInt(KEY_UNLOCK_GUARD_MS, 500)
+    fun unlockGuardMs(context: Context): Int = sp(context).getInt(KEY_UNLOCK_GUARD_MS, 250)
 
     fun setUnlockGuardMs(context: Context, value: Int) {
         sp(context).edit().putInt(KEY_UNLOCK_GUARD_MS, value).apply()

@@ -377,47 +377,43 @@ class LockService : Service() {
         handler.removeCallbacks(audioCheckRunnable)
         PauseActivity.finishIfRunning()
         ScreenTimeout.cancel()
-        // Input guard: the overlay keeps the focus for a moment after the unlock and swallows
-        // every key, so a quick extra press (or the release of the unlocking one) does not reach
-        // the app below - e.g. a launcher opening a game on the same A press.
-        val showBars = Prefs.barsVisible(this) ?: false
+        // Input guard: the lock screen stays up (all dots lit, still holding the focus and
+        // swallowing every key) for a moment after the third press and until every button is
+        // released, so a quick extra press does not reach the app below - e.g. a launcher
+        // opening a game on the unlocking A press. Only then is the app handed the focus and
+        // the exit animation played: apps that stop drawing without the focus (SDL apps such as
+        // ES-DE) then redraw during the animation instead of showing a black screen.
         val guardMs = Prefs.unlockGuardMs(this).toLong()
-        var animationDone = false
-        var guardDone = guardMs <= 0
-        fun finishUnlock() {
-            // The screen may have gone off meanwhile and a new lock replaced this overlay.
-            if (animationDone && guardDone && overlayView === view) {
-                // The audio focus is abandoned in detachOverlay(), i.e. after the slide: it
-                // keeps media paused during the short (invisible) handoff to the app.
-                detachOverlay(unmuteMedia = true)
-            }
+        if (guardMs <= 0) {
+            revealApp(view)
+            return
         }
-        if (guardDone) {
-            releaseOverlayFocus(view)
-        } else if (showBars) {
-            // While it keeps the focus the overlay controls the system bars: request them now,
-            // so the app below is laid out with its bars right away and does not jump later.
-            view.showSystemBars()
-        }
-        LockActivity.finishIfRunning(showSystemBars = showBars)
-        view.playExitAnimation {
-            animationDone = true
-            finishUnlock()
-        }
-        if (!guardDone) {
-            val start = SystemClock.uptimeMillis()
-            handler.postDelayed(object : Runnable {
-                override fun run() {
-                    val waited = SystemClock.uptimeMillis() - start
-                    if (view.isInputHeld() && waited < UNLOCK_GUARD_MAX_MS) {
-                        handler.postDelayed(this, 50L)
-                        return
-                    }
-                    guardDone = true
-                    if (overlayView === view) releaseOverlayFocus(view)
-                    finishUnlock()
+        val start = SystemClock.uptimeMillis()
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                // The screen may have gone off meanwhile and a new lock replaced this overlay.
+                if (overlayView !== view) return
+                val waited = SystemClock.uptimeMillis() - start
+                if (view.isInputHeld() && waited < UNLOCK_GUARD_MAX_MS) {
+                    handler.postDelayed(this, 50L)
+                    return
                 }
-            }, guardMs)
+                revealApp(view)
+            }
+        }, guardMs)
+    }
+
+    /** Hands the focus to the app below and slides the lock screen away. */
+    private fun revealApp(view: LockOverlayView) {
+        releaseOverlayFocus(view)
+        // The audio focus is abandoned in detachOverlay(), i.e. after the slide: it keeps
+        // media paused during the short (invisible) handoff to the app.
+        LockActivity.finishIfRunning(
+            showSystemBars = Prefs.barsVisible(this) ?: false
+        )
+        view.playExitAnimation {
+            // The screen may have gone off meanwhile and a new lock replaced this overlay.
+            if (overlayView === view) detachOverlay(unmuteMedia = true)
         }
     }
 

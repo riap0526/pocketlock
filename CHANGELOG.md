@@ -5,9 +5,11 @@
 ### New
 
 - **Ignore buttons after unlock** (Options → Ignore buttons after unlock: Off / 250 / 500 /
-  1000 ms, default 500 ms). After the third press the lock screen keeps swallowing buttons for
-  this long and until every button is released, so a quick extra press no longer reaches the
-  app below (e.g. ES-DE launching a game on the same A press that unlocked).
+  1000 ms, default 250 ms). After the third press the lock screen stays up for this long and
+  until every button is released, ignoring all buttons, so a quick extra press no longer
+  reaches the app below (e.g. ES-DE launching a game on the same A press that unlocked). The
+  unlock animation starts only afterwards, so apps that pause without input focus (ES-DE)
+  redraw during the animation instead of flashing black.
 
 ### From upstream 1.4
 
