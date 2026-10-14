@@ -24,11 +24,13 @@ android {
         versionName = "1.4"
 
         // GitHub Actions builds of this fork: derive an always-increasing versionCode from the
-        // upstream one and the run number, so every CI build installs over the previous one.
-        System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()?.let { run ->
-            versionCode = versionCode!! * 10000 + run
-            versionName = "$versionName-fork.$run"
-        }
+        // upstream one and the build number, so every CI build installs over the previous one.
+        // Release builds take the number from the tag (FORK_BUILD_NUMBER, see release.yml).
+        (System.getenv("FORK_BUILD_NUMBER") ?: System.getenv("GITHUB_RUN_NUMBER"))
+            ?.toIntOrNull()?.let { run ->
+                versionCode = versionCode!! * 10000 + run
+                versionName = "$versionName-fork.$run"
+            }
     }
 
     signingConfigs {

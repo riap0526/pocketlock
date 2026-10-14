@@ -1,0 +1,67 @@
+name: Release
+
+# Pushing a tag like v1.4-fork.15 (or creating a GitHub Release with such a new tag) builds the
+# signed APK with that build number and attaches it to the release as PocketLock-1.4-fork.15.apk.
+# Use a number at least as high as any build already installed (e.g. the CI run that was tested),
+# otherwise Android refuses the update as a downgrade.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Version from tag
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          if ! [[ "$TAG" =~ ^v([0-9.]+)-fork\.([0-9]+)$ ]]; then
+            echo "Tag must look like v1.4-fork.15"
+            exit 1
+          fi
+          if ! grep -q "versionName = \"${BASH_REMATCH[1]}\"" app/build.gradle.kts; then
+            echo "versionName in app/build.gradle.kts is not ${BASH_REMATCH[1]}"
+            exit 1
+          fi
+          echo "FORK_BUILD_NUMBER=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Prepare signing
+        env:
+          PASS: ${{ secrets.KEYSTORE_PASSPHRASE }}
+        run: |
+          if [ -z "$PASS" ] || [ ! -f signing/release.jks.enc ]; then
+            echo "Release builds must be signed: KEYSTORE_PASSPHRASE or signing/release.jks.enc missing."
+            exit 1
+          fi
+          mkdir -p keystore
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+            -in signing/release.jks.enc -out keystore/release.jks -pass env:PASS
+          printf 'storeFile=keystore/release.jks\nstorePassword=%s\nkeyAlias=pocketlock\nkeyPassword=%s\n' \
+            "$PASS" "$PASS" > keystore.properties
+
+      - name: Build signed release APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "PocketLock-$VERSION.apk"
+
+      - name: Attach APK to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          # The release may already exist (created on GitHub with notes); otherwise create it.
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" --title "Pocket Lock $VERSION" --notes "See CHANGELOG.md."
+          gh release upload "$TAG" "PocketLock-$VERSION.apk" --clobber
