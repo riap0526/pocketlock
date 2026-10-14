@@ -34,7 +34,7 @@ Based on upstream `v1.4`. Full details in [CHANGELOG.md](./CHANGELOG.md). Releas
 
 All other features, setup steps and behavior come from the original project. For the full feature list, setup instructions (permissions, system screen lock, device administrator, appearance) and how Pocket Lock works, see the original repository: **[iskrin/pocketlock](https://github.com/iskrin/pocketlock)**.
 
-To build it yourself: JDK 17, Android SDK 35 and `./gradlew assembleRelease`. Release signing in CI uses an encrypted key in `signing/` and the `KEYSTORE_PASSPHRASE` secret; pushing a tag like `v1.4-fork.15` builds the signed APK and attaches it to the GitHub Release (see [`.github/workflows`](./.github/workflows)). Locally, create a `keystore.properties` as described in the upstream README.
+To build it yourself: JDK 17, Android SDK 35 and `./gradlew assembleRelease`. Release signing in CI uses an encrypted key in `signing/` and the `KEYSTORE_PASSPHRASE` secret; releases are published by the *Release* workflow (Actions → Release → Run workflow with a build number; see [`.github/workflows`](./.github/workflows)). Locally, create a `keystore.properties` as described in the upstream README.
 
 ---
 

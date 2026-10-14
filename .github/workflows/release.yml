@@ -1,10 +1,17 @@
 name: Release
 
-# Pushing a tag like v1.4-fork.15 (or creating a GitHub Release with such a new tag) builds the
-# signed APK with that build number and attaches it to the release as PocketLock-1.4-fork.15.apk.
-# Use a number at least as high as any build already installed (e.g. the CI run that was tested),
-# otherwise Android refuses the update as a downgrade.
+# Builds the signed APK and publishes it as a GitHub Release (PocketLock-<version>.apk).
+#
+# Start it from the Actions tab (Release -> Run workflow) with a build number, e.g. 15 for
+# v1.4-fork.15, or push a tag like v1.4-fork.15. Use a number at least as high as any build
+# already installed (e.g. the CI run that was tested), otherwise Android refuses the update as a
+# downgrade. Release notes are taken from .github/release-notes/<tag>.md when that file exists.
 on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Build number (e.g. 15 for v1.4-fork.15)"
+        required: true
   push:
     tags: ['v*']
 
@@ -22,19 +29,26 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Version from tag
+      - name: Version
+        env:
+          BUILD_INPUT: ${{ github.event.inputs.build }}
         run: |
-          TAG="$GITHUB_REF_NAME"
-          if ! [[ "$TAG" =~ ^v([0-9.]+)-fork\.([0-9]+)$ ]]; then
-            echo "Tag must look like v1.4-fork.15"
-            exit 1
+          BASE=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts | head -1)
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if ! [[ "$BUILD_INPUT" =~ ^[0-9]+$ ]]; then echo "Build number must be a number"; exit 1; fi
+            NUM="$BUILD_INPUT"
+          else
+            if ! [[ "$GITHUB_REF_NAME" =~ ^v([0-9.]+)-fork\.([0-9]+)$ ]]; then
+              echo "Tag must look like v1.4-fork.15"; exit 1
+            fi
+            if [ "${BASH_REMATCH[1]}" != "$BASE" ]; then
+              echo "Tag version ${BASH_REMATCH[1]} does not match versionName $BASE"; exit 1
+            fi
+            NUM="${BASH_REMATCH[2]}"
           fi
-          if ! grep -q "versionName = \"${BASH_REMATCH[1]}\"" app/build.gradle.kts; then
-            echo "versionName in app/build.gradle.kts is not ${BASH_REMATCH[1]}"
-            exit 1
-          fi
-          echo "FORK_BUILD_NUMBER=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
-          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          echo "FORK_BUILD_NUMBER=$NUM" >> "$GITHUB_ENV"
+          echo "VERSION=$BASE-fork.$NUM" >> "$GITHUB_ENV"
+          echo "TAG=v$BASE-fork.$NUM" >> "$GITHUB_ENV"
 
       - name: Prepare signing
         env:
@@ -56,12 +70,19 @@ jobs:
           ./gradlew assembleRelease --no-daemon
           cp app/build/outputs/apk/release/app-release.apk "PocketLock-$VERSION.apk"
 
-      - name: Attach APK to the release
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="$GITHUB_REF_NAME"
-          # The release may already exist (created on GitHub with notes); otherwise create it.
-          gh release view "$TAG" >/dev/null 2>&1 || \
-            gh release create "$TAG" --title "Pocket Lock $VERSION" --notes "See CHANGELOG.md."
-          gh release upload "$TAG" "PocketLock-$VERSION.apk" --clobber
+          NOTES=".github/release-notes/$TAG.md"
+          if [ ! -f "$NOTES" ]; then
+            NOTES="$RUNNER_TEMP/notes.md"
+            echo "See [CHANGELOG.md](CHANGELOG.md)." > "$NOTES"
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file "$NOTES"
+            gh release upload "$TAG" "PocketLock-$VERSION.apk" --clobber
+          else
+            gh release create "$TAG" "PocketLock-$VERSION.apk" --target "$GITHUB_SHA" \
+              --title "Pocket Lock $VERSION" --notes-file "$NOTES" --latest
+          fi
