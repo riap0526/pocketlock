@@ -1,82 +1,59 @@
-# Pocket Lock
+# **Pocket Lock** fork
 
-A custom lock screen for Android handhelds, inspired by the Nintendo Switch lock screen.
-When the display wakes up, the lock screen shows three dots — unlock it by pressing any
-button (or tapping the screen) three times.
+> **This is a personal-use fork of [iskrin/pocketlock](https://github.com/iskrin/pocketlock).** It adds a few features and fixes that the maintainer wanted for their own handheld, on top of the original lock screen. See [Disclaimer](#disclaimer) and [Credits](#credits) before using it.
 
-Originally built for the **Retroid Pocket Nova** (Android 13, 4:3 screen), but it should
-work on any Android 8.0+ device.
+Pocket Lock is a Nintendo Switch–style lock screen for Android handhelds: when the display wakes up, it shows three dots, and you unlock by pressing any button (or tapping the screen) three times.
 
-## Features
+APKs are built and signed by GitHub Actions on every push: open [Actions → Build APK](https://github.com/riap0526/pocketlock/actions/workflows/build.yml), pick the latest successful run on `main` and download **PocketLock-signed-apk**.
 
-- **3-press unlock** — any button, trigger or screen tap counts; progress shown as three dots.
-- **Lock on wake** — appears automatically every time the display turns on.
-- **Apps are paused while locked** — the lock screen is an opaque activity above the running app,
-  so music or gameplay does not continue in the background.
-- **Screen-off timeout** — if you accidentally wake the device and don't unlock it, the screen
-  turns off again after the chosen time (5 s – 2 min, or *Never*). Requires the device
-  administrator permission.
-- **No flash** — with the system lock set to *None*, the lock screen is a pre-attached overlay,
-  so the first frame after wake-up is the lock screen itself.
-- **Slide-down unlock animation.**
-- **Click sound & vibration** (can be turned off).
-- **Custom appearance** — your own background photo (stored losslessly as WebP/PNG, up to 4096 px),
-  pan/zoom, plus dot size, position and colors from a palette.
-- **Apps never stopped** — apps that crash after being stopped (RetroArch with Vulkan by default)
-  are only paused behind the lock screen; editable under Options → *Apps never stopped…*.
-- **Battery indicator (optional)** — battery icon with fill level, lightning bolt while charging and
-  optional percentage; position, size and colors are configurable (Appearance → Battery).
-- **Aspect-ratio independent** — positions are stored as fractions of the screen, so the same
-  settings adapt to any resolution (16:9, 4:3, ...).
-- **No ads, no analytics, no internet permission.**
+---
 
-## Installation
+## What's Different in This Fork
 
-1. Download the latest `PocketLock-<version>.apk` from the [Releases](../../releases) page.
-2. Copy it to the device and install it (allow installation from unknown sources), or use adb:
+Based on upstream `v1.4`. Full details in [CHANGELOG.md](./CHANGELOG.md).
 
-```
-adb install -r PocketLock-1.0.apk
-```
+**1.4-fork**
 
-## Setup
+- **Ignore buttons after unlock** (Off / 250 / 500 / 1000 ms, default 500 ms): an extra press right after unlocking no longer reaches the app below (e.g. a launcher starting a game on the same A press).
+- Merged upstream 1.4 **without its top bar** (clock + battery); this fork keeps its own battery indicator.
 
-1. Open **Pocket Lock**.
-2. **Permissions** tab: grant *Display over other apps* and disable battery optimization.
-3. Android Settings → Security → Screen lock → set **None** (recommended) or *Swipe*.
-4. **Options** tab: turn on **Lock enabled**.
-5. Optional: grant **Device administrator** (Permissions tab, needed to turn the screen off again
-   when the lock screen is not unlocked) and pick a time in **Screen off after**.
-6. Full instructions are available under the **(i)** button in the app.
+**1.3-fork**
 
-## Appearance
+- **Battery indicator on the lock screen** (optional): the icon's fill shows the remaining charge, so it reads even with the percentage hidden; lightning bolt and a separate fill color while charging; free positioning, size and colors.
+- **Apps never stopped**: an editable list of apps that are only paused, never stopped, while locked (all RetroArch variants by default, instead of one hard-coded package).
+- **More reliable detection** of emulators that keep running behind the lock screen on Android 11+.
+- **Anti-lockout fix**: analog triggers only count as an unlock method once one has actually been pressed, so devices with digital L2/R2 cannot be locked out.
+- **Lighter background image**: decoded only as large as the screen needs and prepared in advance.
+- **Signed builds via GitHub Actions**; every build installs over the previous one as an update.
 
-Open **Appearance…** from the Options tab:
+> **Switching from the upstream APK:** this fork is signed with a different key and uses the same package name, so Android requires uninstalling the upstream app first, which **deletes all Pocket Lock settings** (including the background image). If the device administrator permission is enabled, turn it off in Android settings before uninstalling.
 
-- **Background** — choose your own photo or keep the black background; pan/zoom the image.
-- **Dots** — size, spacing and position of the three dots.
-- **Colors** — color palette + opacity for the active and inactive dot.
+---
 
-## Building from source
+## Features & Usage
 
-Requirements: JDK 17, Android SDK (platform 35, build-tools 35.0.0), Gradle 8.11.1.
+All other features, setup steps and behavior come from the original project. For the full feature list, setup instructions (permissions, system screen lock, device administrator, appearance) and how Pocket Lock works, see the original repository: **[iskrin/pocketlock](https://github.com/iskrin/pocketlock)**.
 
-```
-./gradlew assembleRelease
-```
+To build it yourself: JDK 17, Android SDK 35 and `./gradlew assembleRelease`. Release signing in CI uses an encrypted key in `signing/` and the `KEYSTORE_PASSPHRASE` secret (see [`.github/workflows`](./.github/workflows)); locally, create a `keystore.properties` as described in the upstream README.
 
-For a signed release build, create `keystore.properties` in the project root:
+---
 
-```
-storeFile=keystore/your.jks
-storePassword=...
-keyAlias=...
-keyPassword=...
-```
+## Contributing
+
+Bug reports are welcome via [Issues](https://github.com/riap0526/pocketlock/issues). This fork is maintained mainly for personal use, so feature requests may not be picked up.
+
+---
+
+## Credits
+
+- **[iskrin](https://github.com/iskrin)** — original author of Pocket Lock. This fork is based entirely on the code of [iskrin/pocketlock](https://github.com/iskrin/pocketlock); all original design and features are theirs, and upstream updates are merged into this fork.
+
+---
 
 ## Disclaimer
 
-This is a personal hobby project. **The code, documentation and release process were created
-with the help of AI** (an AI coding assistant). The app is provided "as is", without any
-warranty — use it at your own risk. It is not a security-grade lock (it can be bypassed via
-ADB/recovery) and it is not affiliated with Retroid or Nintendo.
+- This fork is maintained **primarily for personal use**: it adds small features and fixes for the maintainer's own device and does not aim to redesign the app.
+- Changes in this fork are made **with AI assistance** and tested mainly on that single device.
+- It is **not affiliated with or endorsed by** the original author. Please do not report issues from this fork to the upstream project.
+- Like the original, it is **not a security-grade lock** (it can be bypassed via ADB or recovery) and is not affiliated with Retroid or Nintendo.
+- Provided **as is, without warranty**. Evaluate for yourself whether to use this fork.
