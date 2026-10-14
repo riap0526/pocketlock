@@ -4,7 +4,7 @@
 
 Pocket Lock is a Nintendo Switch–style lock screen for Android handhelds: when the display wakes up, it shows three dots, and you unlock by pressing any button (or tapping the screen) three times.
 
-APKs are built and signed by GitHub Actions on every push: open [Actions → Build APK](https://github.com/riap0526/pocketlock/actions/workflows/build.yml), pick the latest successful run on `main` and download **PocketLock-signed-apk**.
+[Releases](https://github.com/riap0526/pocketlock/releases)
 
 ---
 
