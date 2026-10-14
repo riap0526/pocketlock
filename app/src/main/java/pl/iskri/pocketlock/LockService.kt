@@ -37,6 +37,7 @@ class LockService : Service() {
     private var overlayView: LockOverlayView? = null
     private var lockArmed = false
     private var mediaMuted = false
+    private var earlyResumeDone = false
     private var audioActiveCount = 0
     private var lockedPackage: String? = null
     private val handler = Handler(Looper.getMainLooper())
@@ -210,6 +211,7 @@ class LockService : Service() {
             LockActivity.resetPresses()
         }
         lockArmed = true
+        earlyResumeDone = false
         audioActiveCount = 0
         handler.removeCallbacks(audioCheckRunnable)
         PauseActivity.finishIfRunning()
@@ -350,15 +352,28 @@ class LockService : Service() {
         }
     }
 
-    /** Resets the screen-off timeout without resuming the app behind the lock. */
+    /**
+     * Called on every counted press. On the first one the opaque PauseActivity (used only for
+     * apps that ignore onPause) is finished silently: the app below resumes and re-creates its
+     * window/GL context while the overlay still covers the screen, so nothing flashes when the
+     * lock is revealed on the third press. (Upstream 1.4 removed this; this fork keeps it,
+     * because without it the re-creation shows as a black flash right after the unlock.)
+     */
     private fun onOverlayPress() {
         ScreenTimeout.start(this)
+        if (earlyResumeDone) return
+        earlyResumeDone = true
+        if (PauseActivity.isRunning()) {
+            Log.i(TAG, "early resume of the app behind the lock")
+            PauseActivity.finishIfRunning()
+        }
     }
 
     private fun performUnlock(view: LockOverlayView) {
         Log.i(TAG, "overlay unlocked")
         lockArmed = false
         Prefs.setPressCount(this, 0)
+        earlyResumeDone = false
         handler.removeCallbacks(audioCheckRunnable)
         PauseActivity.finishIfRunning()
         ScreenTimeout.cancel()
@@ -451,6 +466,7 @@ class LockService : Service() {
         val view = overlayView ?: return
         overlayView = null
         lockArmed = false
+        earlyResumeDone = false
         isOverlayAttached = false
         if (unmuteMedia) {
             lockedPackage = null

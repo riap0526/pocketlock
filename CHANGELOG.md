@@ -11,10 +11,12 @@
 
 ### From upstream 1.4
 
-- Apps stopped while locked (see *Apps never stopped*) stay paused until the unlock instead of
-  resuming on the first press, and are handed back without the system's sideways slide
-  animation.
-- Not included: upstream's top bar (clock + battery). This fork keeps its own battery
+- Apps stopped while locked (see *Apps never stopped*) are handed back without the system's
+  sideways slide animation.
+- Not included: upstream stopped resuming such apps on the first press. This fork keeps the
+  early resume, because otherwise the app re-creates its screen after the unlock and shows a
+  black flash.
+- Also not included: upstream's top bar (clock + battery). This fork keeps its own battery
   indicator; the system-bar timing change that the top bar needed is left out as well.
 
 ## 1.3-fork — changes since 1.2.2
