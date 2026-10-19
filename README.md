@@ -8,7 +8,7 @@ Pocket Lock is a Nintendo Switch–style lock screen for Android handhelds: when
 
 ## What's Different in This Fork
 
-Based on upstream `v1.4`. Full details in [CHANGELOG.md](./CHANGELOG.md). Release APKs are named `PocketLock-<version>.apk` (e.g. `PocketLock-1.4-fork.15.apk`).
+Based on upstream `v1.4`. Full details in [CHANGELOG.md](./CHANGELOG.md).
 
 - **Ignore buttons after unlock** (Off / 250 / 500 / 1000 ms, default 500 ms): an extra press right after unlocking no longer reaches the app below (e.g. a launcher starting a game on the same A press).
 - Merged upstream 1.4 **without its top bar** (clock + battery); this fork keeps its own battery indicator.
