@@ -17,7 +17,6 @@ Based on upstream `v1.4`. Full details in [CHANGELOG.md](./CHANGELOG.md).
 - **More reliable detection** of emulators that keep running behind the lock screen on Android 11+.
 - **Anti-lockout fix**: analog triggers only count as an unlock method once one has actually been pressed, so devices with digital L2/R2 cannot be locked out.
 - **Lighter background image**: decoded only as large as the screen needs and prepared in advance.
-- **Signed builds via GitHub Actions**; every build installs over the previous one as an update.
 
 ---
 
