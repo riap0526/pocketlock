@@ -19,8 +19,6 @@ Based on upstream `v1.4`. Full details in [CHANGELOG.md](./CHANGELOG.md).
 - **Lighter background image**: decoded only as large as the screen needs and prepared in advance.
 - **Signed builds via GitHub Actions**; every build installs over the previous one as an update.
 
-> **Switching from the upstream APK:** this fork is signed with a different key and uses the same package name, so Android requires uninstalling the upstream app first, which **deletes all Pocket Lock settings** (including the background image). If the device administrator permission is enabled, turn it off in Android settings before uninstalling.
-
 ---
 
 ## Features & Usage
